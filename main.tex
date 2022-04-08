@@ -14,6 +14,7 @@
 \usepackage{color}
 \usepackage{hyperref}
 \usepackage{wrapfig}
+\usepackage{float}
 
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
@@ -81,37 +82,120 @@ Exploration into the possibility of creating a user-controlled, MIDI\footnote{mu
 
 \section{Theory}
 
-\subsection{Digital - Analog Converter}
+% A presentation of the theoretical background necessary to understand your project. Not every project will need a theory section, but most will. Here you would describe the physics of how sensors you use work (eg how does accelerometer measure acceleration, or how does a capacitive touch sensor work), or how an electrical interface to a device works.
 
-\subsection{Analog - Digital Converter}
+\subsection{Digital - Analog Converter}\label{Digital - Analog Converter}
 
-\subsection{Low Pass Filter}
+The primary goal of a digital to analog converter is to convert data bits (strictly HIGH or LOW), and convert to an analog signal with voltage varying on the values of the data bits. This can be done either by receiving all data pins at once, or sending the data pins individually along with a clock bit, which is then read by a segment in the integrated circuit that decodes the data. Receiving all data pins at once does not require the use of an integrated circuit, and can be done using resistor ladders. More details regarding resistor ladders will be shown below. Nonetheless, the DAC allows us to input a certain number of bits, in the case of this project, 10 bits, and convert to an analog signal (thereby giving us 1024 different values from 0 volts up until the maximum voltage). This is essentially "receiving what output voltage to emit in binary", so that 1111111111, all pins on, corresponds to the maximum voltage, and 0000000000 (all pins off) correspond to minimum voltage, and something like 1101100110 till be $\frac{870}{1023}$ of the maximum. 
 
-\subsection{MIDI Standard}
+\subsection{Analog - Digital Converter}\label{Analog - Digital Converter}
 
-\subsection{PWM-Based Synthesis}
+an analog to digital works in the exact opposite way as a digital to analog converter. By taking in an input voltage (as a proportion of the maximum voltage), an analog to digital converter will set some data value to be equal to that input voltage as a binary proportion to the maximum (or reference) voltage. In the case of the microprocessor, this will be 3.3 volts. The usage of this in the project is to be able to perform certain actions based on the value of this input pin, i.e. control the frequency based on what notes are being pressed. 
 
-\subsection{Envelope Generation}
+\subsection{Low Pass Filter}\label{Low Pass Filter}
+
+The theory behind an analog low pass filter is relatively simple; the signal is sent through an RC circuit (see figure \ref{fig:LPF}), which, due to the charging and discharging properties of a capacitor, allows us to block frequencies past a certain cutoff frequency. This cutoff frequency is given by the following formula:
+
+$$
+f_{cutoff}=\frac{1}{2 \pi R C}
+$$
+
+So, in order to reduce unnecessary signal noise, we can apply a low pass filter to block frequencies past the human range of hearing, as well as attenuate higher pitched distortion coming from the circuit. 
+
+In the specific case of this project, a 9.55 nF capacitor was made available. Using the formula mentioned above, we can set the cutoff frequency to 20 kHz, therefore using a resistor of 800 Ohms. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.4 \textwidth]{lowpassfilter.png}
+    \caption{A basic circuit diagram of a low pass filter. } % cite here
+    % https://www.allaboutcircuits.com/technical-articles/low-pass-filter-tutorial-basics-passive-RC-filter/
+    \label{fig:LPF}
+\end{figure}
+
+We can graph what the resultant signal graph will be post-LPF by using the following formula. This formula is derived from the formula for a voltage divider circuit. 
 
 
-\section{Apparatus}
 
-\subsection{Apparatus Details}
+$$
+V_{out}=V_{in}\left(\frac{X_{C}}{\sqrt{R_{1}^{2}+X_{C}^{2}}}\right)
+$$
+
+where
+
+$$
+X_{C}=\frac{1}{2 \pi f C}
+$$
+
+Hence, assuming $V_{in}$ is kept constant at 3.3 volts, we can view the output voltage as a function of the frequency, with $C = 9.55*10^{-9}$ F, and $R_1 = 800 \Omega$. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.5 \textwidth]{lpfgraph.png}
+    \caption{Plot of voltage versus frequency (linear scale) for an RC low pass filter. }
+    \label{fig:lpfgraph}
+\end{figure}
+
+\subsection{MIDI Standard}\label{MIDI Standard Theory}
+% https://www.instructables.com/Send-and-Receive-MIDI-with-Arduino/
+
+Next, we delve further into details regarding the MIDI standard. Note that this is strictly regarding the standard, and details regarding receiving MIDI data on the microprocessor will be described in Section \ref{Previous Apparatus Renditions}. 
+
+Sending MIDI data works by sending a stream of bytes at a given baud rate\footnote{The rate at which information is transferred in a communication channel.}. %https://www.setra.com/blog/what-is-baud-rate-and-what-cable-length-is-required-1#:~:text=The%20baud%20rate%20is%20the,of%209600%20bits%20per%20second.
+This data is then decoded and processed, and instrument-related actions are taken accordingly. 
+
+MIDI data is sent in either 2 or 3 bytes of information, depending on what the first byte is. The first byte is always a command byte:
+
+$$
+\begin{array}{l|l}
+10000001 & \text { note off } \\
+10010001 & \text { note on } \\
+10100001 & \text { aftertouch } \\
+10110001 & \text { continuous controller } \\
+11000001 & \text { patch change } \\
+11010001 & \text { channel pressure } \\
+11100001 & \text { pitch bend } \\
+11110001 & \text { non-musical commands }
+\end{array}
+$$
+
+The latter half-byte in the command is what channel the command is being sent on (in this case, they are all being sent on channel 1. 
+
+If the command is a Note On, Note Off, or aftertouch, the first byte that is sent after the command is what note was pressed, and the second is the velocity value or aftertouch value, respectively. IF the command is a controlled change or similar, the first byte that is sent after the command is what controller number was changed, and its new value. We are ignoring aftertouch, patch change, channel pressure, pitch bend, and non-musical commands in this project. 
+
+Hence, we can read the first byte, quickly decode it, and read the second byte and third byte accordingly. The C implementations are in Appendix \ref{Appendix A: Table of Notes to Frequency Values}. 
+
+When reading a note on / off command, the second byte corresponds to what note is being played. There is a direct conversion from the MIDI note to the frequency, through the following formula:
+
+
+
+
+\subsection{PWM-Based Synthesis}\label{PWM-Based Synthesis Theory}
+
+\subsection{Envelope Generation}\label{Envelope Generation Theory}
+
+
+\section{Apparatus}\label{Apparatus}
+
+% Description of the project including diagrams of electrical and mechanical aspects. Depending on the complexity of the circuitry, a separate block diagram that shows functional blocks might be beneficial in addition to complete electrical schematics. The text should provide details on how the apparatus works. This section should also include a description of how your project is used.
+
+\subsection{Apparatus Details}\label{Apparatus Details}
 
 The final rendition of this project is relatively simple in terms of electronics. We begin by sending a signal of the same voltage to 10 different buttons, which act as the user control for the frequency of the wave emitted from the PWM. These buttons then go into a 10-bit DAC, which was done using a resistor ladder based on the R-2R architecture, where the resultant signal is read through a 10-bit ADC (thus allowing for the same level of precision for the DAC as is available for the ADC) that is built into the MSP430G2553 microprocessor. % expand more
 
 % include circuit diagram
 
-\subsection{How the project is used}
+\subsection{How the project is used}\label{How the project is used}
 
 The project is intended to be used similarly to a piano, with the 10 buttons available corresponding to various keys on a piano, ranging from A4 to C6, excluding sharps and flats in the note range. 
 
-\subsection{Previous Apparatus Renditions}
+\subsection{Previous Apparatus Renditions}\label{Previous Apparatus Renditions}
 
 As the initial intention of this project was to include MIDI compatibility, it is important to also include circuit diagrams for this, given it offered different methods of user interaction. The rendition of the project that allowed for MIDI input was the 3 oscillator version (which, as will be discussed in the Results section, did not work properly due to hardware limitations). Thus, the apparatus diagram below will reflect this 
 
 
-\section{Results}
+\section{Results}\label{Results}
+
+% How did the device perform? Did it work according to the expectations? Comparison of theory to results obtained (as quantitative as possible). Problems encountered, graph(s) of data obtained, if appropriate, accuracy of the device (if it is a measuring instrument).
 
 
 % TODO: 
@@ -121,20 +205,27 @@ As the initial intention of this project was to include MIDI compatibility, it i
 
 
 
-\section{Discussion}
+\section{Discussion}\label{Discussion}
 
-
+% Discuss what went well, and what could have been better, possible improvements to the device.
 
 
 \section{Conclusions}
 
+% Was it worth constructing? What did you learn?
+
 
 
 %include references here
+% Sources other than the course lab manual or lab web page should be referenced. Especially if your code is based on code you found on the web or elsewhere, you should make sure that the body of your report contains a clear citation to the source you used, and a corresponding reference here in the references section. In the body of the report, you should also explain clearly what differentiates your code from the source you used.
 
-\section{Appendix}
+\appendix
 
-\subsection{Appendix A: Table of Notes to Frequency Values}
+\section{Appendix A: Table of Notes to Frequency Values}\label{Appendix A: Table of Notes to Frequency Values}
+
+
+
+% Any additional material that should be included in the report, but not necessary for the main body can be included as appendices. You should definitely include (well-annotated) program listings.
 
 \begin{table}[h]
     \centering
@@ -145,5 +236,209 @@ As the initial intention of this project was to include MIDI compatibility, it i
     \caption{Table of Notes to Frequency Values}
     \label{tab:pianonotestofrequency}
 \end{table}
+
+\section{Appendix B: C Code for Decoding MIDI Data}
+
+Please note that functions regarding the actual waveform generation were ignored here for space and organization purposes. 
+
+\begin{lstlisting}
+//
+// Created by Ashtan Mistal on 2022-03-24.
+//
+
+#include "msp430.h"
+#include "msp430g2553.h"
+
+unsigned long frequency;
+unsigned long amplitude;
+unsigned long noteon;
+unsigned long square_wave_volume;
+unsigned long noise_wave_volume;
+unsigned long triangle_wave_volume;
+unsigned long sawtooth_wave_volume;
+unsigned long attack_rate;
+unsigned long decay_rate;
+unsigned long sustain_level;
+unsigned long release_rate;
+
+void send_output(int input) {
+    P1OUT = input;
+}
+
+// take in MIDI note and convert to frequency
+// midi note is a number between 0 and 127
+int midi_to_frequency(int midi_note) {
+    // this is a slow function because it declares a variable every time it is called
+    // will be better to declare a global variable and use that instead
+    int midi_to_frequency_table[128] = {
+        8, 8, 9, 9, 10, 10, 11, 12, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 27, 29, 30, 32, 34, 36, 38, 41, 43, 46, 48, 51, 55, 58, 61, 65, 69, 73, 77, 82, 87, 92, 97, 103, 110, 116, 123, 130, 138, 146, 155, 164, 174, 184, 195, 207, 220, 233, 246, 261, 277, 293, 311, 329, 349, 369, 391, 415, 440, 466, 493, 523, 554, 587, 622, 659, 698, 739, 783, 830, 880, 932, 987, 1046, 1108, 1174, 1244, 1318, 1396, 1479, 1567, 1661, 1760, 1864, 1975, 2093, 2217, 2349, 2489, 2637, 2793, 2959, 3135, 3322, 3520, 3729, 3951, 4186, 4434, 4698, 4978, 5274, 5587, 5919, 6271, 6644, 7040, 7458, 7902, 8372, 8869, 9397, 9956, 10548, 11175, 11840, 12544};
+    return midi_to_frequency_table[midi_note];
+}
+
+
+// midi data is sent in as serial peripheral data on ports P2.0 and P2.1
+// convert the serial port input to an 8-bit integer
+// this is the MIDI data
+int serial_to_midi() {
+    int i;
+    int midi_data = 0;
+    for (i = 0; i < 8; i++) {
+        midi_data |= (P2IN & 0x01) << i; // assuming P2.1 is a 1 or 0; may have to change to be based on data and not clock
+        // may have to delay cycles here based on baud rate -- or may have to remove for loop if baud rate cannot be changed and number of cycles is too high
+    }
+    return midi_data;
+}
+
+
+// decode the midi data to determine if it is a note on or a continuous controller change
+// return if it is a note on or a continuous controller change
+// if it is a note on, return 1
+// if it is a continuous controller change, return 2
+// else return -1
+int decode_midi_data(int midi_data) {
+    if ((midi_data & 0xF0) == 0x90) {
+        return 1;
+    } else if ((midi_data & 0xF0) == 0xB0) {
+        return 2;
+    } else if ((midi_data & 0xF0) == 0x80) { // note off
+        return 3;
+    } else {
+        return -1;
+    }
+}
+
+void handle_note_on(int midi_note, int velocity) {
+    frequency = midi_to_frequency(midi_note);
+    amplitude = velocity;
+}
+
+void handle_note_off() {
+    noteon = 0;
+    amplitude = 0; // set amplitude to 0 to turn off the note; remove this if we are using ADSR
+    // amplitude will be handled by the release phase UNLESS we are removing the ADSR envelope
+
+}
+
+void handle_continuous_controller_change(int controller_number, int controller_value) {
+
+    switch(controller_number) {
+        case 1:
+            square_wave_volume = controller_value; 
+            break;
+        case 2:
+            noise_wave_volume = controller_value; 
+            break;
+        case 3:
+            triangle_wave_volume = controller_value; 
+            break;
+        case 4:
+            sawtooth_wave_volume = controller_value; 
+            break;
+        case 5:
+            attack_rate = controller_value;
+            break;
+        case 6:
+            decay_rate = controller_value;
+            break;
+        case 7:
+            sustain_level = controller_value;
+            break;
+        case 8:
+            release_rate = controller_value;
+            break;
+        default:
+            break;
+    }
+}
+
+
+/*
+ * Steps to decode MIDI data:
+ * 1. Read the first byte
+ * 2. If the first byte is a note on, read the second and third byte
+ * 3. If the first byte is a continuous controller change, read the second and third byte
+ * 4. If the first byte is neither, return -1 and ignore the rest of the bytes
+ */
+
+// this is the interrupt service routine
+void decoder() {
+    int midi_data = serial_to_midi();
+    int midi_data_type = decode_midi_data(midi_data);
+    if (midi_data_type == 1) {
+        int midi_note = serial_to_midi();
+        int velocity = serial_to_midi();
+        handle_note_on(midi_note, velocity);
+    } else if (midi_data_type == 2) {
+        int controller_number = serial_to_midi();
+        int controller_value = serial_to_midi();
+        handle_continuous_controller_change(controller_number, controller_value);
+    } else if (midi_data_type == 3) {
+        int midi_note = serial_to_midi();
+        int velocity = serial_to_midi();
+        handle_note_off();
+    }
+}
+
+
+
+
+// enable an interrupt service routine based on the midi clock pin
+void enable_interrupt() {
+    P2IE |= 0x02; // enable interrupt on P2.1
+    P2IES |= 0x02; // set interrupt to trigger on falling edge
+    P2IFG &= ~0x02; // clear interrupt flag
+    P2IE |= 0x02; // enable interrupt on P2.1
+    _BIS_SR(GIE); // enable global interrupts
+}
+
+void __attribute__((interrupt(PORT2_VECTOR))) PORT2_ISR(void) {
+    decoder();
+    P2IFG &= ~0x01; // clear interrupt flag
+}
+
+int main(void) {
+    P1DIR = 0b11111111; // set all pins on P1 to output
+    P1OUT &= 0b00000000; // set all pins on P1 to 0
+    // set up P2 input pins
+    P2DIR = 0b00000000; // set all pins on P2 to input
+    P2REN |= 0b11111110; // enable pull-up resistors on all pins on P2 except P2.0
+
+    //// NOTE TO SELF that there is not in fact a clock pin on the MIDI cable.
+
+    // initialize variables to some default values
+    frequency = 2;
+    amplitude = 255;
+    noteon = 1; // can change to 0 if we do not want our synthesizer to be making noise when we turn it on
+    square_wave_volume = 255;
+    noise_wave_volume = 0;
+    triangle_wave_volume = 255;
+    sawtooth_wave_volume = 255;
+    attack_rate = 2;
+    decay_rate = 40;
+    sustain_level = 127;
+    release_rate = 127;
+
+
+
+    // set up P2 interrupt
+    enable_interrupt();
+    unsigned long period = 1;
+    
+    while (1) {
+        period = 1000000 / frequency; // period converted to microseconds
+        unsigned long i;
+        for (i = 0; i < period; i++) {
+            int output = square_wave_volume * square_wave_iteration(period, i); // this is good
+            output += noise_wave_volume * noise_wave_iteration(period, i)/4096; // this is good
+            output += triangle_wave_volume * triangle_wave_iteration(period, i)/period; // this is good
+            output += sawtooth_wave_volume * sawtooth_wave_iteration(period, i)/period; // this is good
+            output = output / 4;
+            output = output * amplitude / 128;
+            output = ADSR(output, timestep_counter);
+//            serial_output(output);
+            send_output(output);
+        }
+}
+\end{lstlisting}
 
 \end{document}
