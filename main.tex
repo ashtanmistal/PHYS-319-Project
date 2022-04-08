@@ -113,9 +113,10 @@ These buttons then go into a 10-bit DAC, which was done using a resistor ladder 
 \subsection{How the project is used}\label{subsec:how-the-project-is-used}
 
 The project is intended to be used similarly to a piano, with the 10 buttons available corresponding to various keys on a piano, ranging from A4 to C6, excluding sharps and flats in the note range.
-When these buttons are pressed, the corresponding amplitude of the input signal is changed.
+When these buttons are pressed, the corresponding amplitude of the input signal is changed by sending the bits to a 10 bit DAC. 
 This signal is decoded by the ADC, which changes the period of the PWM signal accordingly by modifying a global variable.
 The duty cycle is then set to always be 50\%, by bit shifting the value of the global variable to the right by 1 bit.
+Finally, the signal is outputted, and heard by the user. 
 
 \subsection{Previous Apparatus Renditions}\label{subsec:previous-apparatus-renditions}
 

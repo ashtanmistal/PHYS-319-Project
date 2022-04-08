@@ -11,9 +11,9 @@ This is essentially "receiving what output voltage to emit in binary", so that 1
 
 \subsection{Analog - Digital Converter}\label{subsec:analog---digital-converter}
 
-an analog to digital works in the exact opposite way as a digital to analog converter.
+An analog to digital works in the exact opposite way as a digital to analog converter.
 By taking in an input voltage (as a proportion of the maximum voltage), an analog to digital converter will set some data value to be equal to that input voltage as a binary proportion to the maximum (or reference) voltage.
-In the case of the microprocessor, this will be 3.3 volts.
+In the case of the microprocessor, this reference will be 3.3 volts.
 The usage of this in the project is to be able to perform certain actions based on the value of this input pin, i.e. control the frequency based on what notes are being pressed. 
 
 \subsection{Low Pass Filter}\label{subsec:low-pass-filter}
@@ -121,7 +121,7 @@ Below is a diagram of the PWM waveform.
 \begin{figure}[H]
     \centering
     \includegraphics[width = 0.5 \textwidth]{pwmwaveform}
-    \caption{PWM waveform. Image taken from \href{https://en.wikipedia.org/wiki/Pulse-width_modulation#/media/File:Duty_Cycle_Examples.png}}
+    \caption{PWM waveform. Image taken from} %\href{https://en.wikipedia.org/wiki/Pulse-width_modulation#/media/File:Duty_Cycle_Examples.png}}
     \label{fig:pwmwaveform}
 \end{figure}
 
