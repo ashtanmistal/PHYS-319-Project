@@ -78,34 +78,66 @@
 \section{Introduction}\label{sec:introduction}
 
 % [introduction here]
-Exploration into the possibility of creating a user-controlled, MIDI\footnote{musical instrument digital interface}-compatible fully featured synthesizer has held a personal interest shortly after I became interested in music production itself. Motivation for this project to encompass this personal interest stemmed from first using pulse width modulation to change the brightness of a bulb during an earlier lab. Since my more recent interest in audio equipment itself, I was motivated to do an audio-related project. The purpose of this project, as a result, was to help me gain a further understanding into the inner workings of oscillators and envelope generators, gain an appreciation for the MIDI standard, and of course to have a working, hand-made synthesizer for future music production related use. All three areas of knowledge mentioned above would aid in future audio-related projects, both in software as well as in hardware, and help inspire for future related projects. This project builds off of my previous related experience in music production, which provided me with a background on audio synthesis and processing. 
+Exploration into the possibility of creating a user-controlled, MIDI\footnote{musical instrument digital interface}-compatible fully featured synthesizer has held a personal interest shortly after I became interested in music production itself.
+Motivation for this project to encompass this personal interest stemmed from first using pulse width modulation to change the brightness of a bulb during an earlier lab.
+Since my more recent interest in audio equipment itself, I was motivated to do an audio-related project.
+The purpose of this project, as a result, was to help me gain a further understanding into the inner workings of oscillators and envelope generators, gain an appreciation for the MIDI standard, and of course to have a working, hand-made synthesizer for future music production related use.
+All three areas of knowledge mentioned above would aid in future audio-related projects, both in software as well as in hardware, and help inspire for future related projects.
+This project builds off of my previous related experience in music production, which provided me with a background on audio synthesis and processing.
 
 \section{Theory}\label{sec:theory}
 \input{theory}
 
 \section{Apparatus}\label{sec:apparatus}
-
 % Description of the project including diagrams of electrical and mechanical aspects. Depending on the complexity of the circuitry, a separate block diagram that shows functional blocks might be beneficial in addition to complete electrical schematics. The text should provide details on how the apparatus works. This section should also include a description of how your project is used.
+
+\subsection{PWM Based Synthesis Apparatus}\label{subsec:pwm-based-synthesis-apparatus}
+
+The actual PWM was generated on the MSP430G2553 microcontroller.
+There was no need to send the signal to a DAC, as the PWM signal was directly sent to the AUX output.
+This AUX output was then connected to a speaker.
+The goal of having an AUX output was to be able to analyze the signal on a computer, instead of having to use a microphone to record the signal which would lead to a less accurate representation of the signal.
+This also allowed for the synthesizer to be connected to a more powerful speaker.
+
+The actual circuit diagram for the output is very simple, and will be included in Section~\ref{subsec:apparatus-details}.
+
 
 \subsection{Apparatus Details}\label{subsec:apparatus-details}
 
 The final rendition of this project is relatively simple in terms of electronics.
-We begin by sending a signal of the same voltage to 10 different buttons, which act as the user control for the frequency of the wave emitted from the PWM. These buttons then go into a 10-bit DAC, which was done using a resistor ladder based on the R-2R architecture, where the resultant signal is read through a 10-bit ADC (thus allowing for the same level of precision for the DAC as is available for the ADC) that is built into the MSP430G2553 microprocessor. % expand more
+We begin by sending a signal of the same voltage to 10 different buttons, which act as the user control for the frequency of the wave emitted from the PWM\@.
+These buttons then go into a 10-bit DAC, which was done using a resistor ladder based on the R-2R architecture, where the resultant signal is read through a 10-bit ADC (thus allowing for the same level of precision for the DAC as is available for the ADC) that is built into the MSP430G2553 microprocessor. % expand more
 
 % include circuit diagram
 
 \subsection{How the project is used}\label{subsec:how-the-project-is-used}
 
-The project is intended to be used similarly to a piano, with the 10 buttons available corresponding to various keys on a piano, ranging from A4 to C6, excluding sharps and flats in the note range. 
+The project is intended to be used similarly to a piano, with the 10 buttons available corresponding to various keys on a piano, ranging from A4 to C6, excluding sharps and flats in the note range.
+When these buttons are pressed, the corresponding amplitude of the input signal is changed.
+This signal is decoded by the ADC, which changes the period of the PWM signal accordingly by modifying a global variable.
+The duty cycle is then set to always be 50\%, by bit shifting the value of the global variable to the right by 1 bit.
 
 \subsection{Previous Apparatus Renditions}\label{subsec:previous-apparatus-renditions}
 
-As the initial intention of this project was to include MIDI compatibility, it is important to also include circuit diagrams for this, given it offered different methods of user interaction. The rendition of the project that allowed for MIDI input was the 3 oscillator version (which, as will be discussed in the Results section, did not work properly due to hardware limitations). Thus, the apparatus diagram below will reflect this 
+As the initial intention of this project was to include MIDI compatibility, it is important to also include circuit diagrams for this, given it offered different methods of user interaction.
+The rendition of the project that allowed for MIDI input was the 3 oscillator version (which, as will be discussed in the Results section, did not work properly due to hardware limitations).
+Thus, the apparatus diagram below will reflect this
 
 
 \section{Results}\label{sec:results}
 
 % How did the device perform? Did it work according to the expectations? Comparison of theory to results obtained (as quantitative as possible). Problems encountered, graph(s) of data obtained, if appropriate, accuracy of the device (if it is a measuring instrument).
+Unfortunately, the 3 oscillator version did not work properly due to software limitations.
+When iterating through the different waveforms, the period set in the for loop was wildly inaccurate.
+This was due to the fact that this was largely hardware-based, and did not use a timer to ensure accuracy of the period being set.
+Hence, the actual period was based on the number of CPU cycles that were executed, which changed based on the period due to numerous factors.
+
+Some of these factors include the use of multiplication, division, and modulo, which were not available in the MSP430G2553 microprocessor on a hardware level and thus were computationally expensive.
+Because there was this large computational overhead, not only was the waveform itself inaccurate, but the MIDI data was unable to be processed in a timely manner.
+The 3 oscillator version was therefore only able to act as a noise generator, and was not able to be used as a semi-realistic synthesizer.
+
+Nonetheless, the PWM based, single oscillator version was much more accurate than the 3 oscillator version.
+The PWM based version was able to accurately reproduce a square wave with a given period, mainly due to the fact that the PWM is based on a timer, which is able to accurately set the period and is also not based on the number of CPU cycles.
 
 
 % TODO: 
@@ -119,6 +151,16 @@ As the initial intention of this project was to include MIDI compatibility, it i
 
 % Discuss what went well, and what could have been better, possible improvements to the device.
 
+It would have been a much better idea to use 3 PWM signals instead of 3 iterative waveforms, and modify the period and duty cycle accordingly to match the given waveform being played.
+This would have allowed for a much more accurate representation of the waveform being played, and would have allowed for the use of a timer to accurately set the duty cycle.
+Of course, this may have had its own limitations as well, as we would have to be accurately changing the duty cycle of the PWM signal, and this would have required another timer to be used, along with numerous interrupts.
+This may have been a better idea, but still is at risk of being too computationally expensive due to the constant changing of the duty cycle with a semi-unknown period (due to the fact that we have so many notes that could be played)
+Early analog synthesizers combated this problem, and simultaneously allowed for polyphony, by using a separate waveform generator for each note.
+But alas, this is too expensive for our microprocessor, and the 3 oscillator version was not able to be used as a real-time synthesizer, and the PWM based version was not "interesting" enough for real-world use (albeit was much more accurate and actually playable).
+
+The primary source of inaccuracy for the PWM based version was the DAC being used to convert the notes being pressed to an analog signal.
+Precision resistors were not used, and so a lot of fluctiation was observed in the analog input signal.
+This is observed in the FFT signal discussed inFigure~\ref{fig:fft}.
 
 \section{Conclusions}\label{sec:conclusions}
 

@@ -39,7 +39,8 @@ Using the formula mentioned above, we can set the cutoff frequency to 20 kHz, th
     \label{fig:LPF}
 \end{figure}
 
-We can graph what the resultant signal graph will be post-LPF by using the following formula. This formula is derived from the formula for a voltage divider circuit. 
+We can graph what the resultant signal graph will be post-LPF by using the following formula.
+This formula is derived from the formula for a voltage divider circuit.
 
 
 
@@ -97,9 +98,36 @@ The C implementations are in Appendix~\ref{sec:-table-of-notes-to-frequency-valu
 When reading a note on / off command, the second byte corresponds to what note is being played.
 There is a direct conversion from the MIDI note to the frequency, through the following formula:
 
+% include formula to convert from midt to frequency
+\[
+f_{note}=440\times\frac{2^{(n-69)/12}}{1}
+\]
 
+where $n$ is the MIDI note number.
 
+This frequency is then converted into the period of the note, and then converted into microseconds.
+
+Because this formula is expensive to calculate, we used a lookup table to store the values of the frequencies.
+This lookup table is in Appendix~\ref{sec:-table-of-notes-to-frequency-values}.
 
 \subsection{PWM-Based Synthesis}\label{subsec:pwm-based-synthesis-theory}
+
+PWM-based synthesis generates a square waveform from a given frequency, and a given amplitude.
+The waveform generator is built into the microprocessor, and is controlled by the period and duty cycle of the waveform.
+
+The theory behind this is relatively straightforward.
+Below is a diagram of the PWM waveform.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.5 \textwidth]{pwmwaveform}
+    \caption{PWM waveform. Image taken from \href{https://en.wikipedia.org/wiki/Pulse-width_modulation#/media/File:Duty_Cycle_Examples.png}}
+    \label{fig:pwmwaveform}
+\end{figure}
+
+For this project, we used the PWM generator to generate a square waveform which was then outputted to an AUX output.
+
+The PWM was used once it was determined that multi-oscillation was too computationally expensive (more discussed in Section~\ref{subsec:pwm-based-synthesis-apparatus}).
+
 
 \subsection{Envelope Generation}\label{subsec:envelope-generation-theory}
