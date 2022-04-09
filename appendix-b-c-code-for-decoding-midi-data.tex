@@ -79,7 +79,7 @@ void handle_note_off() {
 }
 
 void handle_continuous_controller_change(int controller_number, int controller_value) {
-
+// case numbers are arbitrary and based on what input MIDI controller we're using
     switch(controller_number) {
         case 1:
             square_wave_volume = controller_value; 
