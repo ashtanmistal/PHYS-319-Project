@@ -1,5 +1,7 @@
 % A presentation of the theoretical background necessary to understand your project. Not every project will need a theory section, but most will. Here you would describe the physics of how sensors you use work (eg how does accelerometer measure acceleration, or how does a capacitive touch sensor work), or how an electrical interface to a device works.
 
+Below, some basics regarding audio synthesis is discussed, as well as basics regarding the conversion methods needed for analog synthesizers. 
+
 \subsection{Digital - Analog Converter}\label{subsec:digital---analog-converter}
 
 The primary goal of a digital to analog converter is to convert data bits (strictly HIGH or LOW), and convert to an analog signal with voltage varying on the values of the data bits.
@@ -89,11 +91,12 @@ The first byte is always a command byte:
 \]
 
 The latter half-byte in the command is what channel the command is being sent on (in this case, they are all being sent on channel 1. 
+With specific regards to this project, MIDI commands were just being sent through Channel 1 for simplicity's sake. 
 
 If the command is a Note On, Note Off, or aftertouch, the first byte that is sent after the command is what note was pressed, and the second is the velocity value or aftertouch value, respectively. IF the command is a controlled change or similar, the first byte that is sent after the command is what controller number was changed, and its new value. We are ignoring aftertouch, patch change, channel pressure, pitch bend, and non-musical commands in this project. 
 
 Hence, we can read the first byte, quickly decode it, and read the second byte and third byte accordingly.
-The C implementations are in Appendix~\ref{sec:-table-of-notes-to-frequency-values}.
+The C implementations are in Appendix~\ref{sec:appendix-b:-c-code-for-decoding-midi-data}.
 
 When reading a note on / off command, the second byte corresponds to what note is being played.
 There is a direct conversion from the MIDI note to the frequency, through the following formula:
@@ -130,4 +133,16 @@ For this project, we used the PWM generator to generate a square waveform which 
 The PWM was used once it was determined that multi-oscillation was too computationally expensive (more discussed in Section~\ref{subsec:pwm-based-synthesis-apparatus}).
 
 
-\subsection{Envelope Generation}\label{subsec:envelope-generation-theory}
+\subsection{ADSR Envelope Generation}\label{subsec:envelope-generation-theory}
+
+Modern synthesizers do not just have a note ON / OFF transition when playing. An envelope is what allows one oscillator to be played like a pluck, to a pad, to  numerous other types of sounds. An ADSR envelope is controlled by 4 crucial parts:
+
+
+\begin{enumerate}
+    \item Attack phase. The attack phase controls how long it takes from the initial note press to when the amplitude is at its maximum. When the attack is short (like we'd want on a pluck), the maximum amplitude is reached very quickly, whereas when the attack is long (like we might want on a pad or string-type instrument), the maximum amplitude is reached much more slowly. 
+    \item Decay Phase. Once the note reaches its maximum amplitude from the attack stage and the note is still on, the decay phase controls the time it takes for the note to decay from the attack phase to the sustain level (explained below). For a pluck-like instrument, we will want this decay time to be relatively short, for example, as this shapes the sound to only be heard for a short amount of time regardless of the time that the note is played for. 
+    \item Sustain Phase. So long as the note is still on, this is the amplitude of the output (as a fraction of the input amplitude, so a note with a lower velocity will have a sustained amplitude of the same fraction, but not the same volume, as a note with a higher velocity). 
+    \item Release Phase. As soon as the note is released (regardless of what phase it is in), the envelope will go into the Release phase, where the rate at which the output level decays from its initial volume before the release phase to its final level (0 volume, or -$\infty$ dB) is controlled. For a slow release, the release would be long (likely useful for pads or other slow-decaying instruments). 
+\end{enumerate}
+
+Due to debugging other issues, the envelope generation for this project did not work as anticipated (and was a low priority issue, compared to getting the waveform generators to work). Nonetheless, the code for the envelope generator in progress is shared in Appendix \ref{sec:appendix-c:-adsr-envelope-code}. 
