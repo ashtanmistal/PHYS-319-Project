@@ -187,15 +187,15 @@ int main(void) {
         period = 1000000 / frequency; // period converted to microseconds
         unsigned long i;
         for (i = 0; i < period; i++) {
-            int output = square_wave_volume * square_wave_iteration(period, i); // this is good
-            output += noise_wave_volume * noise_wave_iteration(period, i)/4096; // this is good
-            output += triangle_wave_volume * triangle_wave_iteration(period, i)/period; // this is good
-            output += sawtooth_wave_volume * sawtooth_wave_iteration(period, i)/period; // this is good
+            unsigned long output = square_wave_volume * square_wave_iteration(period, i);
+            output += noise_wave_volume * noise_wave_iteration(period, i)/4096;
+            output += triangle_wave_volume * triangle_wave_iteration(period, i)/period;
+            output += sawtooth_wave_volume * sawtooth_wave_iteration(period, i)/period;
             output = output / 4;
             output = output * amplitude / 128;
-            output = ADSR(output, timestep_counter);
+//            output = ADSR(output, timestep_counter);
 //            serial_output(output);
-            send_output(output);
+            send_output((int) output);
         }
 }
 \end{lstlisting}

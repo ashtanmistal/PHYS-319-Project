@@ -31,7 +31,7 @@ The circuit diagram is shown in Figure \ref{fig:circuit_diagram}. It was discove
 \begin{figure}
     \centering
     \includegraphics[width = 0.8 \textwidth]{circuit.png}
-    \caption{Circuit diagram for PWM-based synthesizer. Self-powered through the MSP430. }
+    \caption{Circuit diagram for PWM-based synthesizer. Self-powered through the MSP430. Note that the speaker is just denoting the existence of an audio output, and is actually the AUX output and not necessarily an actual speaker. }
     \label{fig:circuit_diagram}
 \end{figure}
 
@@ -49,13 +49,18 @@ The use of the project is relatively simple: The user plugs in the MSP430 to a p
 
 As the initial intention of this project was to include MIDI compatibility, it is important to also include circuit diagrams for this, given it offered different methods of user interaction.
 The rendition of the project that allowed for MIDI input was the 3 oscillator version (which, as will be discussed in the Results section, did not work properly due to hardware limitations).
-Thus, the apparatus diagram below will reflect the legacy oscillators. The circuit diagram is shown in Figure \ref{fig:3oscillatordiagram}. 
+Thus, the apparatus diagram below will reflect the legacy oscillators. The MIDI compatible circuit diagram is shown in Figure \ref{fig:3oscillatordiagram}. 
+
+Note that the sending of the output through the 8 separate pins instead of the single output pin is due to sending the direct digital signal to an 8 bit DAC, as using just a PWM does not require the use of a DAC (unlike adding the 3 waveforms together). 
+Adding the 3 waveforms together would certainly be \textit{possible} using a PWM, but would be jsut as computationally expensive. 
 
 The reason that this circuit diagram is still being shown and discussed is because it was the original intention of the project, and is significantly more complicated, thorough, and playable than the PWM version - if it worked (limitations and reasons why are discussed in Section \ref{sec:results}. 
 
+The MIDI was being sent by an Edirol UA 25-EX Audio Interface, controlled by Presonus Studio One. 
+
 \begin{figure}
     \centering
-    \includegraphics[width = 0.8 \textwidth]{3oscillatordiagram.png}
-    \caption{Circuit diagram for the MIDI compatible, 3 oscillator version. }
+    \includegraphics[width = 0.98 \textwidth]{midicircuit.png}
+    \caption{Circuit diagram for the MIDI compatible, 3 oscillator version. Note that the speaker is just denoting the existence of an audio output, and is actually the AUX output and not necessarily an actual speaker.}
     \label{fig:3oscillatordiagram}
 \end{figure}

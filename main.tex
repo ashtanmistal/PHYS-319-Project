@@ -5,7 +5,7 @@
 \usepackage{amssymb}
 \usepackage{amsthm  }
 \usepackage{fancyhdr}
-\usepackage[margin=0.5in]{geometry}
+\usepackage[margin=0.7in]{geometry}
 \usepackage{graphicx}
 \usepackage[utf8]{inputenc}
 \usepackage{listings}
@@ -24,12 +24,12 @@
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 \lstset{
   language=C,
-  aboveskip=3mm,
-  belowskip=3mm,
+  aboveskip=1mm,
+  belowskip=1mm,
   showstringspaces=false,
   columns=flexible,
   basicstyle={\small\ttfamily},
-  numbers=none,
+  numbers=left,
   numberstyle=\tiny\color{gray},
   keywordstyle=\color{blue},
   commentstyle=\color{dkgreen},
@@ -79,8 +79,6 @@
 % - Measure input on a FFT on Studio One (a spectral filter may be more accurate)
 % - Compare to proper square wave
 % - accuracy of the square wave frequency using a tuner
-% - add conclusion
-% - finish Table of Notes to Frequency Values appendix
 % - make circuit diagrams for current project and previous rendition
 % - add bibliography
 
@@ -88,13 +86,14 @@
 \section{Abstract}\label{sec:abstract}
 
 % [abstract here]
+% A brief summary of the most important features of your project including the result and conclusions. 
 
 \section{Introduction}\label{sec:introduction}
 
 % [introduction here]
 Exploration into the possibility of creating a user-controlled, MIDI\footnote{musical instrument digital interface}-compatible fully featured synthesizer has held a personal interest shortly after I became interested in music production itself.
 Motivation for this project to encompass this personal interest stemmed from first using pulse width modulation to change the brightness of a bulb during an earlier lab.
-Since my more recent interest in audio equipment itself, I was motivated to do an audio-related project.
+Since my more recent interest in analog audio equipment itself, I was motivated to do an audio-related project.
 The purpose of this project, as a result, was to help me gain a further understanding into the inner workings of oscillators and envelope generators, gain an appreciation for the MIDI standard, and of course to have a working, hand-made synthesizer for future music production related use.
 All three areas of knowledge mentioned above would aid in future audio-related projects, both in software as well as in hardware, and help inspire for future related projects.
 This project builds off of my previous related experience in music production, which provided me with a background on audio synthesis and processing.
@@ -113,18 +112,18 @@ When iterating through the different waveforms, the period set in the for loop w
 This was due to largely hardware-based fluctuations, as I did not use a timer to ensure accuracy of the period being set.
 Hence, the actual period was based on the number of CPU cycles that were executed, which changed based on the period due to numerous factors.
 Some of these factors include the use of multiplication, division, and modulo, which were not available in the MSP430G2553 microprocessor on a hardware level (no hardware multiplier, for example) and thus were computationally expensive.
-Because there was this large computational overhead, not only was the waveform itself inaccurate, but the MIDI data was unable to be processed in a timely manner given it required quick turnaround time due to a fast baud rate of 31.25 k bits per seconds. 
+Because there was this large computational overhead, not only was the waveform itself inaccurate, but the MIDI data was unable to be processed in a timely manner given it required quick turnaround time due to a fast baud rate of 31.25 k bits per seconds. The MIDI also did not work due to accidental frying of the MIDI Out port on the Edirol UA 25-EX, where it was treated as a MIDI In port and was being sent 5 volts when it should not have. This lead to spotty USB connection\footnote{This may have instead been due to transportation of the audio interface to the lab and back.}.
 The 3 oscillator version was therefore only able to act as a noise generator, and was not able to be used as a semi-realistic synthesizer due to its inability to hold higher frequency synthesis. But, changing the period every iteration did lead to interesting results:
 
 \begin{lstlisting}
 
 void main() {
-    [setup code here, omitted for redundancy's sake]
+    // [setup code here, omitted for redundancy]
     period = 2; // modifiable value
     while(1) {
         period += 1; // modifiable value
         period %= 200; // modifiable value
-        [synthesis code / for loop here, omitted for redundancy's sake]
+        // [synthesis code / for loop here, omitted for redundancy]
     }
 }
 \end{lstlisting}
@@ -157,26 +156,42 @@ Given the output is a square wave, we can compare this to a square wave generate
 % does studio one have an oscilloscope?
 
 
+Note that the signal to noise ratio is much higher on the software tone generator, so on the PWM square wave, there is a much more visible noise floor, but nonetheless the signal can still be analyzed accordingly. 
+
+The distortion of the PWM wave did change based on the note that was being played, as an inherent property of not using precision resistors and going through numerous conversions before turning into an audible output. A4, when played, did not have much distortion - this is juxtaposed with [D5?], which, as we will see below, has a much more distorted signal and did not sound as pleasant when played. The tone generated signal for [D5?] is very similar to that of A4, and will be omitted for space's sake. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.6 \textwidth]{pwm587.png}
+    \caption{FFT transform of the PWM synthesizer, playing at 587.33 Hz (D5). }
+    \label{fig:pwm587}
+\end{figure}
+
+[ADD ANALYSIS OF FFT GRAPHS HERE]
+
+
 \section{Discussion}\label{sec:discussion}
 
 % Discuss what went well, and what could have been better, possible improvements to the device.
 
 It would have been a much better idea to use 3 PWM signals instead of 3 iterative waveforms, and modify the period and duty cycle accordingly to match the given waveform being played.
 This would have allowed for a much more accurate representation of the waveform being played, and would have allowed for the use of a timer to accurately set the duty cycle.
-Of course, this may have had its own limitations as well, as we would have to be accurately changing the duty cycle of the PWM signal, and this would have required another timer to be used, along with numerous interrupts.
-This may have been a better idea, but still is at risk of being too computationally expensive due to the constant changing of the duty cycle with a semi-unknown period (due to the fact that we have so many notes that could be played)
+Of course, this may have had its own limitations as well, as we would have to be accurately changing the duty cycle of the PWM signal, and this would have required another timer to be used, along with numerous interrupts (in order to use the PWM as a non-square wave).
+This may have been a better idea, but still is at risk of being too computationally expensive due to the constant changing of the duty cycle with a semi-unknown period (due to the fact that we have so many notes that could be played). 
 Early analog synthesizers combated this problem, and simultaneously allowed for polyphony, by using a separate waveform generator for each note.
 But alas, this is too expensive for our microprocessor, and the 3 oscillator version was not able to be used as a real-time synthesizer, and the PWM based version was not "interesting" enough for real-world use (albeit was much more accurate and actually playable).
 
 The primary source of inaccuracy for the PWM based version was the DAC being used to convert the notes being pressed to an analog signal.
 Precision resistors were not used, and so a lot of fluctuation was observed in the analog input signal.
-This is observed in the FFT signal discussed in Figure~\ref{fig:fft}.
+This is observed in the FFT signal discussed in Figure~\ref{fig:pwm440} and Figure~\ref{fig:pwm587}. 
+
+A possible improvement that could be made is to use this module as not a synthesizer, but instead an LFO (low frequency oscillator), which could have been used as a module in another synthesizer application, or even as a Eurorack module. Other improvements would be to use precision resistors to ensure a more consistent frequency input. It would also lead to a more interesting output if the output was split, with one split being smoothed using a capacitor, and the other as-is, and mixing the two together using a variable resistor (thus having two different waveforms to play with). 
 
 \section{Conclusions}\label{sec:conclusions}
 
 % Was it worth constructing? What did you learn?
 
-
+The most important thing that was learned is that the MSP430 is not powerful enough to be used for accurate audio reproduction. Hardware limitations were often overlooked in the design of the synthesizer, leading to numerous issues and inaccuracies as described in Sections \ref{sec:results} and \ref{sec:discussion}. This project was certainly a learning experience, and being aware of such limitations will make a future design of a synthesizer a more successful endeavour. As such, the project was certainly worth constructing. Although disappointing in its results, the design of this project lead to more knowledge in decoding MIDI data, envelope and waveform generation, and circuit design. The 3 oscillator synthesizer still has use as an LFO, and with some tuning of the output frequency, could be used as such so long as MIDI data is decoded elsewhere. 
 
 %include references here
 % Sources other than the course lab manual or lab web page should be referenced. Especially if your code is based on code you found on the web or elsewhere, you should make sure that the body of your report contains a clear citation to the source you used, and a corresponding reference here in the references section. In the body of the report, you should also explain clearly what differentiates your code from the source you used.
@@ -197,16 +212,16 @@ This is observed in the FFT signal discussed in Figure~\ref{fig:fft}.
     \hline
     Note & Frequency (Hz) & Period ($\mu$s) \\
     \hline
-        A4 & 440 & 2273 \\
-        B4 & 493.883 & 2025 \\
-        C5 &  & 1911 \\
-        D5 &  & 1703 \\
-        E5 &  & 1517 \\
-        F5 &  & 1432 \\
-        G5 &  & 1276 \\
-        A6 &  & 1136 \\
-        B6 &  & 1012 \\
-        C6 &  & 956 \\
+        A4 & 440.00 & 2273 \\
+        B4 & 493.89 & 2025 \\
+        C5 & 523.25 & 1911 \\
+        D5 & 587.33 & 1703 \\
+        E5 & 659.25 & 1517 \\
+        F5 & 698.46 & 1432 \\
+        G5 & 783.99 & 1276 \\
+        A6 & 880.00 & 1136 \\
+        B6 & 987.77 & 1012 \\
+        C6 & 1046.50 & 956 \\
         \hline
     \end{tabular}
     \caption{Table of Notes to Frequency Values}
