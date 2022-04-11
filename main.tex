@@ -85,6 +85,8 @@
 
 \section{Abstract}\label{sec:abstract}
 
+In this project, a 3 oscillator, MIDI compatible synthesizer was built, along with a self-complete PWM based synthesizer. The PWM-based synthesizer features mostly consistent waveforms, a low I/O pin count, and is powered directly through the microprocessor. The 3 oscillator version unfortunately suffered from numerous hardware and software limitations, mainly due to the speed of the microprocessor, the number of I/O available, and the number of ADCs available for use. Although it was concluded that the 3 oscillator synthesizer was not in working enough condition due to these limitations, the PWM-based synthesizer was playable. The 3 oscillator version functioned well as a noise generator and experimental synthesizer. Both versions of the synthesizer would offer more use as a low frequency oscillator due to such limitations, but nonetheless hold use within an analog synthesizer setup. 
+
 % [abstract here]
 % A brief summary of the most important features of your project including the result and conclusions. 
 
@@ -135,39 +137,56 @@ The PWM based version was able to accurately reproduce a square wave with a give
 
 We can observe the accuracy and fluctuation of the PWM waveform by connecting the output of our synthesizer to the input of an audio interface, which allows the input to be observed through signal analysis software. Presonus Studio One's Spectrum Analyzer was used to analyze the waveform. 
 
-Firstly, let's visualize A4 (at 440 Hz):
+Firstly, let's visualize A4 (at what should be 440 Hz), in Figure~\ref{fig:pwm440}. 
 
-\begin{figure}[H]
+\begin{figure}
     \centering
-    \includegraphics[width = 0.6 \textwidth]{pwm440.png}
-    \caption{FFT transform of the PWM synthesizer, playing at 440 Hz (A4). }
+    \includegraphics[width = \textwidth]{FFTA4V2.png}
+    \caption{FFT transform of the PWM synthesizer, playing at A4. }
     \label{fig:pwm440}
 \end{figure}
 
-Given the output is a square wave, we can compare this to a square wave generated using a software tone generator (also built into Studio One):
+Given the output is a square wave, we can compare this to a square wave generated using a software tone generator (also built into Studio One), both with and without antialiasing (figure \ref{fig:tone440aa} and \ref{fig:tone440naa} respectively). 
 
-\begin{figure}[H]
+\begin{figure}
     \centering
-    \includegraphics[width = 0.6 \textwidth]{tone440.png}
-    \caption{FFT transform of a square wave at 440 Hz. }
-    \label{fig:tone440}
+    \includegraphics[width = \textwidth]{FFT440AA.png}
+    \caption{FFT transform of a square wave at 440 Hz with antialiasing. }
+    \label{fig:tone440aa}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width = \textwidth]{FFT440NAA.png}
+    \caption{FFT transform of a square wave at 440 Hz with no antialiasing. }
+    \label{fig:tone440naa}
 \end{figure}
 
 % does studio one have an oscilloscope?
 
+From what we can see here, the low pass filter did a good job at performing rudimentary antialiasing. However, the PWM period is actually off -- Even though 440 Hz (2273 $\mu$s) was selected as the period, as we see in the for loop in Section \ref{sec:appendix-d:-pwm-synthesizer-code}, the actual frequency is at approximately 504 Hz, which is closer to B rather than A. 
 
-Note that the signal to noise ratio is much higher on the software tone generator, so on the PWM square wave, there is a much more visible noise floor, but nonetheless the signal can still be analyzed accordingly. 
+Note that the signal to noise ratio is much higher on the software tone generator, so on the PWM square wave, there is a much more visible noise floor, but nonetheless the signal can still be analyzed accordingly. In fact, we can directly view the noise floor coming from the synthesizer in Figure~\ref{fig:noisefloor}. 
 
-The distortion of the PWM wave did change based on the note that was being played, as an inherent property of not using precision resistors and going through numerous conversions before turning into an audible output. A4, when played, did not have much distortion - this is juxtaposed with [D5?], which, as we will see below, has a much more distorted signal and did not sound as pleasant when played. The tone generated signal for [D5?] is very similar to that of A4, and will be omitted for space's sake. 
-
-\begin{figure}[H]
+\begin{figure}
     \centering
-    \includegraphics[width = 0.6 \textwidth]{pwm587.png}
-    \caption{FFT transform of the PWM synthesizer, playing at 587.33 Hz (D5). }
-    \label{fig:pwm587}
+    \includegraphics[width = \textwidth]{FFTnoisefloor.png}
+    \caption{FFT transform of the noise floor coming from the PWM synthesizer. }
+    \label{fig:noisefloor}
 \end{figure}
 
-[ADD ANALYSIS OF FFT GRAPHS HERE]
+The distortion of the PWM wave did change based on the note that was being played, as an inherent property of not using precision resistors and going through numerous conversions before turning into an audible output. A4, when played, did not have much distortion - this is juxtaposed with B4, which, as we will see in Figure~\ref{fig:fftb4}, has a much more distorted signal and did not sound as pleasant when played. The [software] tone generated signal for B4 is very similar to that of A4, and will be omitted for space's sake. 
+
+\begin{figure}
+    \centering
+    \includegraphics[width = \textwidth]{FFTB4.png}
+    \caption{FFT transform of the PWM synthesizer, playing at B4. }
+    \label{fig:fftb4}
+\end{figure}
+
+% [ADD ANALYSIS OF FFT GRAPHS HERE]
+
+We see that there are 2 conflicting notes that are being played (that are very close to each other). B4 was not always a poorly synthesized note: Dependent on placement of the synthesizer and resistor placement, the voltage level fluctuated repeatedly between the different bounds for a given note, hence why we see the fluctuating voltage here. This is an inherent flaw in the buttons to DAC to ADC to period translation. 
 
 
 \section{Discussion}\label{sec:discussion}
@@ -183,9 +202,10 @@ But alas, this is too expensive for our microprocessor, and the 3 oscillator ver
 
 The primary source of inaccuracy for the PWM based version was the DAC being used to convert the notes being pressed to an analog signal.
 Precision resistors were not used, and so a lot of fluctuation was observed in the analog input signal.
-This is observed in the FFT signal discussed in Figure~\ref{fig:pwm440} and Figure~\ref{fig:pwm587}. 
+This is especially observed in Figure~\ref{fig:fftb4}. 
+This could have also been mitigated somewhat by using an integrated circuit instead of a resistor ladder DAC, as the resistor ladder was very reactive to external conditions. During the in-class demonstration, for example, B4 was just fine in its frequency consistency, whereas D5 was hugely fluctuating and distorted, which interfered somewhat with the demonstration. 
 
-A possible improvement that could be made is to use this module as not a synthesizer, but instead an LFO (low frequency oscillator), which could have been used as a module in another synthesizer application, or even as a Eurorack module. Other improvements would be to use precision resistors to ensure a more consistent frequency input. It would also lead to a more interesting output if the output was split, with one split being smoothed using a capacitor, and the other as-is, and mixing the two together using a variable resistor (thus having two different waveforms to play with). 
+A possible improvement that could be made is to use this module - either the 3 oscillator version or the PWM version - as not a synthesizer, but instead an LFO (low frequency oscillator), which could have been used as a module in another synthesizer application, or even as a Eurorack module. Other improvements would be to use precision resistors to ensure a more consistent frequency input, or an integrated circuit DAC, as discussed above. It would also lead to a more interesting output if the output was split, with one split being smoothed using a capacitor, and the other as-is, and mixing the two together using a variable resistor (thus having two somewhat different waveforms to play with). And of course, having proper MIDI compatibility - perhaps by doing the decoding on another microprocessor - would have made the synthesizer more playable. 
 
 \section{Conclusions}\label{sec:conclusions}
 
@@ -193,8 +213,12 @@ A possible improvement that could be made is to use this module as not a synthes
 
 The most important thing that was learned is that the MSP430 is not powerful enough to be used for accurate audio reproduction. Hardware limitations were often overlooked in the design of the synthesizer, leading to numerous issues and inaccuracies as described in Sections \ref{sec:results} and \ref{sec:discussion}. This project was certainly a learning experience, and being aware of such limitations will make a future design of a synthesizer a more successful endeavour. As such, the project was certainly worth constructing. Although disappointing in its results, the design of this project lead to more knowledge in decoding MIDI data, envelope and waveform generation, and circuit design. The 3 oscillator synthesizer still has use as an LFO, and with some tuning of the output frequency, could be used as such so long as MIDI data is decoded elsewhere. 
 
+\section{References}
+
 %include references here
 % Sources other than the course lab manual or lab web page should be referenced. Especially if your code is based on code you found on the web or elsewhere, you should make sure that the body of your report contains a clear citation to the source you used, and a corresponding reference here in the references section. In the body of the report, you should also explain clearly what differentiates your code from the source you used.
+
+
 
 \break
 
@@ -219,8 +243,8 @@ The most important thing that was learned is that the MSP430 is not powerful eno
         E5 & 659.25 & 1517 \\
         F5 & 698.46 & 1432 \\
         G5 & 783.99 & 1276 \\
-        A6 & 880.00 & 1136 \\
-        B6 & 987.77 & 1012 \\
+        A5 & 880.00 & 1136 \\
+        B5 & 987.77 & 1012 \\
         C6 & 1046.50 & 956 \\
         \hline
     \end{tabular}
