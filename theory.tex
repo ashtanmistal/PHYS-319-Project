@@ -21,12 +21,14 @@ The usage of this in the project is to be able to perform certain actions based 
 \subsection{Low Pass Filter}\label{subsec:low-pass-filter}
 
 The theory behind an analog low pass filter is relatively simple;
-the signal is sent through an RC circuit (see figure~\ref{fig:LPF}), which, due to the charging and discharging properties of a capacitor, allows us to block frequencies past a certain cutoff frequency.
+the signal is sent through an RC circuit (see Figure~\ref{fig:LPF}), which, due to the charging and discharging properties of a capacitor, allows us to block frequencies past a certain cutoff frequency.
 This cutoff frequency is given by the following formula:
 
 \[
-f_{cutoff}=\frac{1}{2 \pi R C}
+f_{cutoff}=\frac{1}{2 \pi R C},
 \]
+
+where $R$ is the resistance of the resistor in the circuit, and $C$ is the capacitance of the capacitor. 
 
 So, in order to reduce unnecessary signal noise, we can apply a low pass filter to block frequencies past the human range of hearing, as well as attenuate higher pitched distortion coming from the circuit. 
 
@@ -36,13 +38,13 @@ Using the formula mentioned above, we can set the cutoff frequency to 20 kHz, th
 \begin{figure}[H]
     \centering
     \includegraphics[width = 0.4 \textwidth]{lowpassfilter}
-    \caption{A basic circuit diagram of a low pass filter. \cite{keim_2019}} % cite here
+    \caption{A basic circuit diagram of a low pass filter \cite{keim_2019}. } % cite here
     % https://www.allaboutcircuits.com/technical-articles/low-pass-filter-tutorial-basics-passive-RC-filter/
     \label{fig:LPF}
 \end{figure}
 
 We can graph what the resultant signal graph will be post-LPF by using the following formula.
-This formula is derived from the formula for a voltage divider circuit.
+This formula is derived from the formula for a voltage divider circuit \cite{keim_2019}.
 
 
 
@@ -54,7 +56,7 @@ Hence, assuming $V_{in}$ is kept constant at 3.3 volts, we can view the output v
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width = 0.5 \textwidth]{lpfgraph}
+    \includegraphics[width = 0.7 \textwidth]{lpfgraph}
     \caption{Plot of voltage versus frequency (linear scale) for an RC low pass filter. }
     \label{fig:lpfgraph}
 \end{figure}
@@ -69,18 +71,28 @@ Sending MIDI data works by sending a stream of bytes at a given baud rate\footno
 This data is then decoded and processed, and instrument-related actions are taken accordingly. 
 
 MIDI data is sent in either 2 or 3 bytes of information, depending on what the first byte is.
-The first byte is always a command byte: \cite{ghassaei_instructables_2017}
+The first byte is always a command byte, as we see in Table \ref{tab:midi_command_bytes}. \cite{ghassaei_instructables_2017}
+\begin{table}
+    \centering
+    \begin{tabular}{|c|l|}
+    \hline
+        10000001 & \text { note off } \\
+        10010001 & \text { note on } \\
+        10100001 & \text { aftertouch } \\
+        10110001 & \text { continuous controller } \\
+        11000001 & \text { patch change } \\
+        11010001 & \text { channel pressure } \\
+        11100001 & \text { pitch bend } \\
+        11110001 & \text { non-musical commands } \\
+        \hline
+    \end{tabular}
+    \caption{MIDI Command Bytes}
+    \label{tab:midi_command_bytes}
+\end{table}
 
 \[
 \begin{array}{l|l}
-10000001 & \text { note off } \\
-10010001 & \text { note on } \\
-10100001 & \text { aftertouch } \\
-10110001 & \text { continuous controller } \\
-11000001 & \text { patch change } \\
-11010001 & \text { channel pressure } \\
-11100001 & \text { pitch bend } \\
-11110001 & \text { non-musical commands }
+
 \end{array}
 \]
 
@@ -91,19 +103,16 @@ If the command is a Note On, Note Off, or aftertouch, the first byte that is sen
 
 Hence, we can read the first byte, quickly decode it, and read the second byte and third byte accordingly.
 The C implementations are in Appendix~\ref{sec:appendix-b:-c-code-for-decoding-midi-data}.
-
 When reading a note on / off command, the second byte corresponds to what note is being played.
 There is a direct conversion from the MIDI note to the frequency, through the following formula:
 
 % include formula to convert from midi to frequency
 \[
-f_{note}=440\times\frac{2^{(n-69)/12}}{1}
+f_{note}=440\times\frac{2^{(n-69)/12}}{1},
 \]
 
 where $n$ is the MIDI note number.
-
 This frequency is then converted into the period of the note, and then converted into microseconds.
-
 Because this formula is expensive to calculate, we used a lookup table to store the values of the frequencies.
 This lookup table is in Appendix~\ref{sec:-table-of-notes-to-frequency-values}.
 
@@ -117,7 +126,7 @@ Below is a diagram of the PWM waveform.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width = 0.5 \textwidth]{pwmwaveform}
+    \includegraphics[width = 0.7 \textwidth]{pwmwaveform}
     \caption{PWM waveform \cite{pwm}} %\href{https://en.wikipedia.org/wiki/Pulse-width_modulation#/media/File:Duty_Cycle_Examples.png}}
     \label{fig:pwmwaveform}
 \end{figure}

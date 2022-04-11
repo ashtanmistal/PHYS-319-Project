@@ -8,7 +8,6 @@ As was discussed in Section~\ref{subsec:low-pass-filter}, the low pass filter wa
 
 This LPF was then connected to an AUX output. 
 This AUX output was then connected to a speaker, however the goal of having an AUX output was to be able to connect to anything -- which is indeed the case. A speaker was used for demonstration purposes, but for measurement purposes as we see in Section \ref{sec:discussion}, this AUX output was connected to an audio interface to be able to be measured. This allowed us to analyze the signal on a computer, instead of having to use a microphone to record the signal which would lead to a less accurate representation of the signal.
-
 The actual circuit diagram for the output is very simple (as it's just a low pass filter and a speaker), and will be included in Section~\ref{subsec:apparatus-details}.
 
 
@@ -22,9 +21,7 @@ When the ADC decodes the input, the period of the PWM signal accordingly by modi
 The duty cycle is then set to always be 50\%, by bit shifting the value of the global variable to the right by 1 bit.
 Finally, the signal is outputted, and heard by the user. 
 
-The code for this implementation is in Appendix \ref{sec:appendix-d:-pwm-synthesizer-code}. 
-
-The circuit diagram is shown in Figure \ref{fig:circuit_diagram}. It was discovered that a USB power supply to the switches was not necessary, and the whole project could be powered by connecting the ground of the MSP430 to the switches itself as we see in the diagram. While this \textit{works}, this method may also be the rationale behind the unexpected voltage fluctuation (hence frequency fluctuation) observed in the output. It would have been a smart idea to separate the grounds and power the inputs separately. 
+The code for this implementation is in Appendix \ref{sec:appendix-d:-pwm-synthesizer-code}, and the circuit diagram is shown in Figure \ref{fig:circuit_diagram}. It was discovered that a USB power supply to the switches was not necessary, and the whole project could be powered by connecting the ground of the MSP430 to the switches itself as we see in the diagram. While this \textit{works}, this method may also be the rationale behind the unexpected voltage fluctuation (hence frequency fluctuation) observed in the output. It would have been a smart idea to separate the grounds and power the inputs separately. 
 
 % include circuit diagram
 
@@ -51,16 +48,15 @@ As the initial intention of this project was to include MIDI compatibility, it i
 The rendition of the project that allowed for MIDI input was the 3 oscillator version (which, as will be discussed in the Results section, did not work properly due to hardware limitations).
 Thus, the apparatus diagram below will reflect the legacy oscillators. The MIDI compatible circuit diagram is shown in Figure \ref{fig:3oscillatordiagram}. 
 
-Note that the sending of the output through the 8 separate pins instead of the single output pin is due to sending the direct digital signal to an 8 bit DAC, as using just a PWM does not require the use of a DAC (unlike adding the 3 waveforms together). 
-Adding the 3 waveforms together would certainly be \textit{possible} using a PWM, but would be jsut as computationally expensive. 
-
-The reason that this circuit diagram is still being shown and discussed is because it was the original intention of the project, and is significantly more complicated, thorough, and playable than the PWM version - if it worked (limitations and reasons why are discussed in Section \ref{sec:results}. 
-
-The MIDI was being sent by an Edirol UA 25-EX Audio Interface, controlled by Presonus Studio One. 
-
 \begin{figure}
     \centering
     \includegraphics[width = 0.98 \textwidth]{midicircuit.png}
     \caption{Circuit diagram for the MIDI compatible, 3 oscillator version. Note that the speaker is just denoting the existence of an audio output, and is actually the AUX output and not necessarily an actual speaker.}
     \label{fig:3oscillatordiagram}
 \end{figure}
+
+Note that the sending of the output through the 8 separate pins instead of the single output pin is due to sending the direct digital signal to an 8 bit DAC, as using just a PWM does not require the use of a DAC (unlike adding the 3 waveforms together). 
+Adding the 3 waveforms together would certainly be \textit{possible} using a PWM, but would be jsut as computationally expensive. 
+The reason that this circuit diagram is still being shown and discussed is because it was the original intention of the project, and is significantly more complicated, thorough, and playable than the PWM version - if it worked (limitations and reasons why are discussed in Section \ref{sec:results}. 
+The MIDI was being sent by an Edirol UA 25-EX Audio Interface, controlled by Presonus Studio One. 
+
