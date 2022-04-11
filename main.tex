@@ -17,6 +17,7 @@
 \usepackage{hyperref}
 \usepackage{wrapfig}
 \usepackage{float}
+\usepackage{url}
 
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
@@ -211,9 +212,10 @@ A possible improvement that could be made is to use this module - either the 3 o
 
 % Was it worth constructing? What did you learn?
 
-The most important thing that was learned is that the MSP430 is not powerful enough to be used for accurate audio reproduction. Hardware limitations were often overlooked in the design of the synthesizer, leading to numerous issues and inaccuracies as described in Sections \ref{sec:results} and \ref{sec:discussion}. This project was certainly a learning experience, and being aware of such limitations will make a future design of a synthesizer a more successful endeavour. As such, the project was certainly worth constructing. Although disappointing in its results, the design of this project lead to more knowledge in decoding MIDI data, envelope and waveform generation, and circuit design. The 3 oscillator synthesizer still has use as an LFO, and with some tuning of the output frequency, could be used as such so long as MIDI data is decoded elsewhere. 
+The most important thing that was learned is that the MSP430 is not powerful enough to be used for accurate audio reproduction. Hardware limitations were often overlooked in the design of the synthesizer, leading to numerous issues and inaccuracies as described in Sections \ref{sec:results} and \ref{sec:discussion}. This project was certainly a learning experience, and being aware of such limitations will make a future design of a synthesizer a more successful endeavour. As such, the project was certainly worth constructing as a learning experience. The design of this project lead to more knowledge in decoding MIDI data, envelope and waveform generation, and circuit design. The 3 oscillator synthesizer still has use as an LFO, and with some tuning of the output frequency, could be used as such so long as MIDI data is decoded elsewhere. 
 
-\section{References}
+\bibliographystyle{ieeetr}
+\bibliography{reference.bib}
 
 %include references here
 % Sources other than the course lab manual or lab web page should be referenced. Especially if your code is based on code you found on the web or elsewhere, you should make sure that the body of your report contains a clear citation to the source you used, and a corresponding reference here in the references section. In the body of the report, you should also explain clearly what differentiates your code from the source you used.
@@ -363,18 +365,18 @@ With regards to the PWM design, the diodes ended up not being needed due to no l
 
 The sketches are included as reference only, and hence are not computer-generated. Necessary details regarding the circuit diagrams are in the corresponding figures in Section \ref{sec:apparatus}. 
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width = 0.9 \textwidth]{initialsketch.png}
-    \caption{Initial design sketch for the 3 oscillator synthesizer. layout of synthesizer inspired by the Moog Minimoog.}
-    \label{fig:my_label}
+    \caption{Initial design sketch for the 3 oscillator synthesizer. Layout of synthesizer inspired by the Moog Minimoog.}
+    \label{fig:initialsketch}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width = 0.9 \textwidth]{pwmsynthsketch.png}
     \caption{Initial design sketch for the PWM based synthesizer, with the 10 buttons being used as an input.}
-    \label{fig:my_label}
+    \label{fig:pwmsketch}
 \end{figure}
 
 \end{document}

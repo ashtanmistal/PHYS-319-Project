@@ -1,13 +1,13 @@
 % A presentation of the theoretical background necessary to understand your project. Not every project will need a theory section, but most will. Here you would describe the physics of how sensors you use work (eg how does accelerometer measure acceleration, or how does a capacitive touch sensor work), or how an electrical interface to a device works.
 
-Below, some basics regarding audio synthesis is discussed, as well as basics regarding the conversion methods needed for analog synthesizers. 
+In the following subsections, some basics regarding audio synthesis is discussed, as well as basics regarding the conversion methods needed for analog synthesizers. These basics provide a sufficient enough understanding behind the components necessary for both the 3 oscillator, MIDI compatible synthesizer, as well as the PWM-based synthesizer. 
 
 \subsection{Digital - Analog Converter}\label{subsec:digital---analog-converter}
 
 The primary goal of a digital to analog converter is to convert data bits (strictly HIGH or LOW), and convert to an analog signal with voltage varying on the values of the data bits.
 This can be done either by receiving all data pins at once, or sending the data pins individually along with a clock bit, which is then read by a segment in the integrated circuit that decodes the data.
-Receiving all data pins at once does not require the use of an integrated circuit, and can be done using resistor ladders.
-More details regarding resistor ladders will be shown below.
+Receiving all data pins at once does not require the use of an integrated circuit, and can be done using resistor ladders \cite{TERRELL1996337}. 
+More details regarding resistor ladders will be shown in Section~\ref{subsec:apparatus-details}.
 Nonetheless, the DAC allows us to input a certain number of bits, in the case of this project, 10 bits, and convert to an analog signal (thereby giving us 1024 different values from 0 volts up until the maximum voltage).
 This is essentially "receiving what output voltage to emit in binary", so that 1111111111, all pins on, corresponds to the maximum voltage, and 0000000000 (all pins off) correspond to minimum voltage, and something like 1101100110 till be $\frac{870}{1023}$ of the maximum. 
 
@@ -36,7 +36,7 @@ Using the formula mentioned above, we can set the cutoff frequency to 20 kHz, th
 \begin{figure}[H]
     \centering
     \includegraphics[width = 0.4 \textwidth]{lowpassfilter}
-    \caption{A basic circuit diagram of a low pass filter. } % cite here
+    \caption{A basic circuit diagram of a low pass filter. \cite{keim_2019}} % cite here
     % https://www.allaboutcircuits.com/technical-articles/low-pass-filter-tutorial-basics-passive-RC-filter/
     \label{fig:LPF}
 \end{figure}
@@ -47,13 +47,7 @@ This formula is derived from the formula for a voltage divider circuit.
 
 
 \[
-V_{out}=V_{in}\left(\frac{X_{C}}{\sqrt{R_{1}^{2}+X_{C}^{2}}}\right)
-\]
-
-where
-
-\[
-X_{C}=\frac{1}{2 \pi f C}
+V_{out}=V_{in}\left(\frac{X_{C}}{\sqrt{R_{1}^{2}+X_{C}^{2}}}\right), \quad X_{C}=\frac{1}{2 \pi f C}
 \]
 
 Hence, assuming $V_{in}$ is kept constant at 3.3 volts, we can view the output voltage as a function of the frequency, with $C = 9.55*10^{-9}$ F, and $R_1 = 800 \Omega$. 
@@ -71,11 +65,11 @@ Hence, assuming $V_{in}$ is kept constant at 3.3 volts, we can view the output v
 Next, we delve further into details regarding the MIDI standard.
 Note that this is strictly regarding the standard, and details regarding receiving MIDI data on the microprocessor will be described in Section~\ref{subsec:previous-apparatus-renditions}.
 
-Sending MIDI data works by sending a stream of bytes at a given baud rate\footnote{The rate at which information is transferred in a communication channel.}. %https://www.setra.com/blog/what-is-baud-rate-and-what-cable-length-is-required-1#:~:text=The%20baud%20rate%20is%20the,of%209600%20bits%20per%20second.
+Sending MIDI data works by sending a stream of bytes at a given baud rate\footnote{The rate at which information is transferred in a communication channel.}. \cite{phongchit_2016} %https://www.setra.com/blog/what-is-baud-rate-and-what-cable-length-is-required-1#:~:text=The%20baud%20rate%20is%20the,of%209600%20bits%20per%20second.
 This data is then decoded and processed, and instrument-related actions are taken accordingly. 
 
 MIDI data is sent in either 2 or 3 bytes of information, depending on what the first byte is.
-The first byte is always a command byte:
+The first byte is always a command byte: \cite{ghassaei_instructables_2017}
 
 \[
 \begin{array}{l|l}
@@ -93,7 +87,7 @@ The first byte is always a command byte:
 The latter half-byte in the command is what channel the command is being sent on (in this case, they are all being sent on channel 1. 
 With specific regards to this project, MIDI commands were just being sent through Channel 1 for simplicity's sake. 
 
-If the command is a Note On, Note Off, or aftertouch, the first byte that is sent after the command is what note was pressed, and the second is the velocity value or aftertouch value, respectively. IF the command is a controlled change or similar, the first byte that is sent after the command is what controller number was changed, and its new value. We are ignoring aftertouch, patch change, channel pressure, pitch bend, and non-musical commands in this project. 
+If the command is a Note On, Note Off, or aftertouch, the first byte that is sent after the command is what note was pressed, and the second is the velocity value or aftertouch value, respectively. If the command is a controlled change or similar, the first byte that is sent after the command is what controller number was changed, and its new value. We are ignoring aftertouch, patch change, channel pressure, pitch bend, and non-musical commands in this project. 
 
 Hence, we can read the first byte, quickly decode it, and read the second byte and third byte accordingly.
 The C implementations are in Appendix~\ref{sec:appendix-b:-c-code-for-decoding-midi-data}.
@@ -101,7 +95,7 @@ The C implementations are in Appendix~\ref{sec:appendix-b:-c-code-for-decoding-m
 When reading a note on / off command, the second byte corresponds to what note is being played.
 There is a direct conversion from the MIDI note to the frequency, through the following formula:
 
-% include formula to convert from midt to frequency
+% include formula to convert from midi to frequency
 \[
 f_{note}=440\times\frac{2^{(n-69)/12}}{1}
 \]
@@ -124,7 +118,7 @@ Below is a diagram of the PWM waveform.
 \begin{figure}[H]
     \centering
     \includegraphics[width = 0.5 \textwidth]{pwmwaveform}
-    \caption{PWM waveform. Image taken from} %\href{https://en.wikipedia.org/wiki/Pulse-width_modulation#/media/File:Duty_Cycle_Examples.png}}
+    \caption{PWM waveform \cite{pwm}} %\href{https://en.wikipedia.org/wiki/Pulse-width_modulation#/media/File:Duty_Cycle_Examples.png}}
     \label{fig:pwmwaveform}
 \end{figure}
 
